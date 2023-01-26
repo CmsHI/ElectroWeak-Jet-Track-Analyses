@@ -21,7 +21,8 @@
 #include <vector>
 
 float resetTH1axisMin4LogScale(float axisMin, std::string axis);
-std::string  summaryTH1(TH1* h);
+std::string summaryTH1(TH1* h);
+std::string summaryTF1(TF1* f);
 TH1* Graph2Histogram(TGraph* graph);
 void fillTH1fromTGraph(TH1* h, TGraph* graph);
 void setTH1_energyScale(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
@@ -84,6 +85,8 @@ double getTH1Chi2Prob(TH1* h1, TH1* h2, double min = 0, double max = -1, bool mi
 double getTH1Chi2ProbMinMaxX(TH1* h1, TH1* h2, double xMin = 0, double xMax = -1);
 double getTH1Chi2ProbMinMaxBin(TH1* h1, TH1* h2, int binStart = 0, int binEnd = -1);
 double getErrorOnIntegralFraction(TH1D* h, double fraction);
+double getSeparation(TH1D* h1, TH1D* h2, double xMin, double xMax);
+double getSeparation(TH1D* h1, TH1D* h2, int binStart = 0, int binEnd = -1);
 void calcTH1Power(TH1* h, double pow);
 // systematic uncertainty
 void fillTH1fromTF1(TH1* h, TF1* f);
@@ -150,6 +153,44 @@ std::string summaryTH1(TH1* h)
     result.append(Form("h->GetMean() = %f , h->GetMeanError() = %f \n", h->GetMean(), h->GetMeanError()));
     result.append(Form("h->GetStdDev() = %f , h->GetStdDevError() = %f \n", h->GetStdDev(), h->GetStdDevError()));
     result.append(Form("h->GetMinimum() = %f , h->GetMaximum() = %f ", h->GetMinimum(), h->GetMaximum()));
+    // do not put a new line to the end of the last line
+
+    return result;
+}
+
+std::string summaryTF1(TF1* f)
+{
+    /*
+    int binFirst = h->GetXaxis()->GetFirst();
+    int binLast  = h->GetXaxis()->GetLast();
+    */
+    std::string result;
+
+
+    result.append(Form("f->GetName() = %s \n", f->GetName()));
+    result.append(Form("f->GetTitle() = %s \n", f->GetTitle()));
+    result.append(Form("f->GetExpFormula() = %s \n", f->GetExpFormula().Data()));
+
+    result.append(Form("f->GetNbinsX() = %d \n", f->GetXaxis()->GetNbins()));
+    result.append(Form("f->GetXaxis()->GetXmin() = %f \n", f->GetXaxis()->GetXmin()));
+    result.append(Form("f->GetXaxis()->GetXmax() = %f \n", f->GetXaxis()->GetXmax()));
+
+    result.append(Form("f->GetChisquare() = %f \n", f->GetChisquare()));
+    result.append(Form("f->GetProb() = %f \n", f->GetProb()));
+    result.append(Form("f->GetNDF() = %d \n", f->GetNDF()));
+    result.append(Form("f->GetNdim() = %d \n", f->GetNdim()));
+    result.append(Form("f->GetNumber() = %d \n", f->GetNumber()));
+    result.append(Form("f->GetNumberFitPoints() = %d \n", f->GetNumberFitPoints()));
+    result.append(Form("f->GetNumberFreeParameters() = %d \n", f->GetNumberFreeParameters()));
+
+    int nPar = f->GetNpar();
+    result.append(Form("f->GetNpar() = %d \n", nPar));
+    for (int i = 0; i < nPar; ++i) {
+        result.append(Form("par[%d] = %f , parerr = %f \n", i, f->GetParameter(i), f->GetParError(i)));
+    }
+
+    result.append(Form("f->GetXmin() = %f \n", f->GetXmin()));
+    result.append(Form("f->GetXmax() = %f", f->GetXmax()));
     // do not put a new line to the end of the last line
 
     return result;
@@ -1213,6 +1254,45 @@ double getErrorOnIntegralFraction(TH1D* h, double fraction)
 
     // NEEDS FIX
     return TMath::Sqrt(fraction*(1-fraction) / h->GetEntries());
+}
+
+double getSeparation(TH1D* h1, TH1D* h2, double xMin, double xMax)
+{
+    int bin1 = h1->FindBin(xMin);
+    int bin2 = h2->FindBin(xMax);
+
+    return getSeparation(h1, h2, bin1, bin2);
+}
+
+double getSeparation(TH1D* h1, TH1D* h2, int binStart, int binEnd)
+{
+    if (binEnd < binStart) {
+        binStart = 1;
+        binEnd = h1->GetNbinsX();
+    }
+
+    TH1D* d1 = (TH1D*)h1->Clone(Form("%s_d1", h1->GetName()));
+    TH1D* d2 = (TH1D*)h2->Clone(Form("%s_d2", h2->GetName()));
+
+    d1->Scale(1.0/d1->Integral(), "width");
+    d2->Scale(1.0/d2->Integral(), "width");
+
+    double res = 0;
+    for (int iBin = binStart; iBin <= binEnd; ++iBin) {
+        double y1 = d1->GetBinContent(iBin);
+        double y2 = d2->GetBinContent(iBin);
+
+        if (y1 == 0 && y2 == 0) continue;
+
+        double binW = d1->GetBinWidth(iBin);
+        res += ((y1-y2)*(y1-y2) / (y1+y2)) * binW;
+    }
+    d1->Delete();
+    d2->Delete();
+
+    res *= 0.5;
+
+    return res;
 }
 
 void calcTH1Power(TH1* h, double pow)
