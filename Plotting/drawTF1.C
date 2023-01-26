@@ -13,7 +13,11 @@
 #include <iostream>
 
 #include "../Utilities/systemUtil.h"
+#include "../Utilities/mathUtil.h"
 
+const std::string strFNCHANDLE = "FNCHANDLE";
+
+bool isFncHandle(std::string formula);
 void drawTF1(std::string formula, std::string parValues, double xMin, double xMax, std::string outputFile = "drawTF1.root", std::string pictureFileName = "drawTF1.png");
 
 void drawTF1(std::string formula, std::string parValues, double xMin, double xMax, std::string outputFile, std::string pictureFileName)
@@ -30,7 +34,13 @@ void drawTF1(std::string formula, std::string parValues, double xMin, double xMa
     output->cd();
 
     TF1* f1 = 0;
-    f1 = new TF1("f1", formula.c_str());
+    if (!isFncHandle(formula)) {
+        f1 = new TF1("f1", formula.c_str());
+    }
+    else {
+        std::string fncName = split(formula, ":", false)[1];
+        f1 = new TF1("f1", getFncPointer(fncName), 0, 1, getFncNpar(fncName));
+    }
     int nPars = f1->GetNpar();
 
     std::vector<std::string> parValuesVec = split(parValues, ";", false);
@@ -38,7 +48,7 @@ void drawTF1(std::string formula, std::string parValues, double xMin, double xMa
 
     if (nPars != nParValuesVec) {
         std::cout << "Function has " << nPars << " parameters" << std::endl;
-        std::cout << "Values are provided for " << nParValuesVec << "parameters" << std::endl;
+        std::cout << "Values are provided for " << nParValuesVec << " parameters" << std::endl;
         std::cout << "Exiting" << std::endl;
         return;
     }
@@ -97,6 +107,11 @@ int main(int argc, char** argv)
                 << std::endl;
         return 1;
     }
+}
+
+bool isFncHandle(std::string formula)
+{
+    return startsWith(formula, strFNCHANDLE.c_str());
 }
 
 
